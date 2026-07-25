@@ -10,6 +10,11 @@ const BUILDINGS: Record<BuildingKind, { name: string; cost: number; light: numbe
   lantern: { name: "Dawn Lantern", cost: 12, light: 14, icon: "✦" },
   tree: { name: "Glowbloom Tree", cost: 18, light: 7, icon: "♠" },
 };
+const SPRITES: Record<BuildingKind, string> = {
+  cottage: "/assets/cottage-sprite.png",
+  lantern: "/assets/lantern-sprite.png",
+  tree: "/assets/glowtree-sprite.png",
+};
 
 const GRID = Array.from({ length: 81 }, (_, i) => i);
 const START_CELLS = new Set([31, 32, 39, 40, 41, 47, 48, 49]);
@@ -118,8 +123,9 @@ export default function Home() {
             <div className="mist-ring mist-two" />
             <div className="light-aura" style={{ opacity: Math.min(.82, .35 + light / 220) }} />
             <div className="campfire"><span>♨</span><i /><i /><i /></div>
-            <div className="keeper keeper-one"><i /><b /></div>
-            <div className="keeper keeper-two"><i /><b /></div>
+            <img className="keeper keeper-one" src="/assets/keeper-sprite.png" alt="" />
+            <img className="keeper keeper-two" src="/assets/keeper-sprite.png" alt="" />
+            <img className="keeper keeper-three" src="/assets/keeper-sprite.png" alt="" />
             <div className="spirit-fox"><span>◆</span><i /></div>
             <div className={`grid ${tutorialOpen && tutorial === 2 ? "tutorial-target-grid" : ""}`}>
               {GRID.map((cell) => {
@@ -133,7 +139,7 @@ export default function Home() {
                     aria-label={building ? BUILDINGS[building.kind].name : `Place ${BUILDINGS[selected].name}`}
                   >
                     <span className="ground-detail" />
-                    {building && <span className={`building ${building.kind}`}><i className="building-glow" /><b>{BUILDINGS[building.kind].icon}</b></span>}
+                    {building && <span className={`building ${building.kind}`}><i className="building-glow" /><img src={SPRITES[building.kind]} alt={BUILDINGS[building.kind].name} /></span>}
                   </button>
                 );
               })}
@@ -151,7 +157,7 @@ export default function Home() {
               const item = BUILDINGS[kind];
               return (
                 <button key={kind} className={`${selected === kind ? "active" : ""} ${tutorialOpen && tutorial === 1 && kind === "lantern" ? "tutorial-target" : ""}`} onClick={() => { setSelected(kind); setToast(`Select a glowing tile for the ${item.name}.`); if (tutorial === 1 && kind === "lantern") setTutorial(2); }}>
-                  <span className={`miniature ${kind}`}>{item.icon}</span>
+                  <span className={`miniature ${kind}`}><img src={SPRITES[kind]} alt="" /></span>
                   <span><b>{item.name}</b><small>{kind === "cottage" ? "Shelter for two keepers" : kind === "lantern" ? "Reveals distant ground" : "Grows ember over time"}</small></span>
                   <em>{item.cost} ◆</em>
                 </button>
