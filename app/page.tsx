@@ -29,6 +29,10 @@ export default function Home() {
   const [ember, setEmber] = useState(78);
   const [toast, setToast] = useState("The first flame is awake.");
   const [sound, setSound] = useState(true);
+  const [music, setMusic] = useState(true);
+  const [particles, setParticles] = useState(true);
+  const [motion, setMotion] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [tutorial, setTutorial] = useState(0);
   const [tutorialOpen, setTutorialOpen] = useState(true);
 
@@ -75,6 +79,27 @@ export default function Home() {
     if (tutorial === 0) setTutorial(1);
   }
 
+  function restartTutorial() {
+    setTutorial(0);
+    setTutorialOpen(true);
+    setSettingsOpen(false);
+    setToast("Follow the golden guide to awaken the vale.");
+  }
+
+  function resetVillage() {
+    setPlaced([
+      { id: 1, kind: "cottage", cell: 40 },
+      { id: 2, kind: "lantern", cell: 39 },
+      { id: 3, kind: "tree", cell: 31 },
+    ]);
+    setEmber(78);
+    setSelected("cottage");
+    setTutorial(0);
+    setTutorialOpen(true);
+    setSettingsOpen(false);
+    setToast("The vale has returned to its first morning.");
+  }
+
   const tutorialCopy = [
     { label: "First spark", title: "Gather ember", body: "Your keepers need warm ember to build. Use the button in the left panel.", action: "Gather ember to continue" },
     { label: "Carry the flame", title: "Choose a Dawn Lantern", body: "Lanterns reveal more ground than any other structure. Select one from the build panel.", action: "Select the lantern" },
@@ -83,7 +108,7 @@ export default function Home() {
   ];
 
   return (
-    <main className="game-shell">
+    <main className={`game-shell ${particles ? "" : "particles-off"} ${motion ? "" : "motion-off"}`}>
       <div className="sky-grain" />
       <div className="cloud cloud-one" />
       <div className="cloud cloud-two" />
@@ -99,6 +124,7 @@ export default function Home() {
           <div><span className="resource-icon ember-icon">◆</span><b>{ember}</b><small>EMBER</small></div>
           <div><span className="resource-icon light-icon">✦</span><b>{light}</b><small>LIGHT</small></div>
           <button className="sound" onClick={() => setSound(!sound)} aria-label="Toggle ambience">{sound ? "◕" : "○"}</button>
+          <button className="settings-button" onClick={() => setSettingsOpen(true)} aria-label="Open settings"><span>⚙</span><small>SETTINGS</small></button>
         </div>
       </header>
 
@@ -186,6 +212,32 @@ export default function Home() {
           </div>
           <button className="tutorial-close" onClick={() => setTutorialOpen(false)} aria-label="Skip tutorial">Skip</button>
         </section>
+      )}
+
+      {settingsOpen && (
+        <div className="settings-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSettingsOpen(false); }}>
+          <section className="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+            <button className="settings-close" onClick={() => setSettingsOpen(false)} aria-label="Close settings">×</button>
+            <span className="eyebrow">THE KEEPER&apos;S BOOK</span>
+            <h3 id="settings-title">Settings</h3>
+            <p className="settings-intro">Shape the vale to suit the way you play.</p>
+            <div className="settings-group">
+              <h4>Sound & atmosphere</h4>
+              <button className="setting-row" onClick={() => setSound(!sound)}><span><b>World ambience</b><small>Wind, fire, birds, and village sounds</small></span><i className={sound ? "on" : ""}>{sound ? "On" : "Off"}</i></button>
+              <button className="setting-row" onClick={() => setMusic(!music)}><span><b>Music</b><small>Soft orchestral score</small></span><i className={music ? "on" : ""}>{music ? "On" : "Off"}</i></button>
+              <button className="setting-row" onClick={() => setParticles(!particles)}><span><b>Ambient particles</b><small>Fireflies, embers, mist, and drifting clouds</small></span><i className={particles ? "on" : ""}>{particles ? "On" : "Off"}</i></button>
+              <button className="setting-row" onClick={() => setMotion(!motion)}><span><b>World motion</b><small>Villagers, trees, wildlife, and vegetation</small></span><i className={motion ? "on" : ""}>{motion ? "On" : "Off"}</i></button>
+            </div>
+            <div className="settings-group">
+              <h4>Guidance</h4>
+              <button className="settings-action" onClick={restartTutorial}><span>✦</span><div><b>Replay guided tutorial</b><small>Walk through gathering, choosing, and placing again</small></div><em>Replay</em></button>
+            </div>
+            <div className="settings-footer">
+              <button className="reset-action" onClick={resetVillage}>Reset village</button>
+              <button className="done-action" onClick={() => setSettingsOpen(false)}>Return to the vale</button>
+            </div>
+          </section>
+        </div>
       )}
 
       <footer><span>Click a glowing tile to build</span><i>◆</i><span>Gather ember to keep expanding</span></footer>
