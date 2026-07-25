@@ -24,6 +24,8 @@ export default function Home() {
   const [ember, setEmber] = useState(78);
   const [toast, setToast] = useState("The first flame is awake.");
   const [sound, setSound] = useState(true);
+  const [tutorial, setTutorial] = useState(0);
+  const [tutorialOpen, setTutorialOpen] = useState(true);
 
   const light = 18 + placed.reduce((sum, item) => sum + BUILDINGS[item.kind].light, 0);
   const occupied = useMemo(() => new Map(placed.map((item) => [item.cell, item])), [placed]);
@@ -59,16 +61,30 @@ export default function Home() {
     setPlaced((current) => [...current, { id: Date.now(), kind: selected, cell }]);
     setEmber((value) => value - item.cost);
     setToast(`${item.name} placed. The dark recedes.`);
+    if (tutorial === 2 && selected === "lantern") setTutorial(3);
   }
 
   function gather() {
     setEmber((value) => value + 16);
     setToast("Your keepers gathered 16 ember.");
+    if (tutorial === 0) setTutorial(1);
   }
+
+  const tutorialCopy = [
+    { label: "First spark", title: "Gather ember", body: "Your keepers need warm ember to build. Use the button in the left panel.", action: "Gather ember to continue" },
+    { label: "Carry the flame", title: "Choose a Dawn Lantern", body: "Lanterns reveal more ground than any other structure. Select one from the build panel.", action: "Select the lantern" },
+    { label: "Push back the veil", title: "Place your lantern", body: "Choose any glowing, empty patch. The lantern will reveal new land around it.", action: "Place on a glowing tile" },
+    { label: "The vale remembers", title: "You know the old craft", body: "Gather, build, and chain lanterns toward the sleeping edges. The rest is yours to discover.", action: "Begin building" },
+  ];
 
   return (
     <main className="game-shell">
       <div className="sky-grain" />
+      <div className="cloud cloud-one" />
+      <div className="cloud cloud-two" />
+      <div className="bird-flock" aria-hidden="true"><i>⌁</i><i>⌁</i><i>⌁</i></div>
+      <div className="foreground-reeds reeds-left" aria-hidden="true">{Array.from({ length: 9 }).map((_, i) => <i key={i} />)}</div>
+      <div className="foreground-reeds reeds-right" aria-hidden="true">{Array.from({ length: 7 }).map((_, i) => <i key={i} />)}</div>
       <header className="topbar">
         <div className="brand">
           <span className="brand-mark">✦</span>
@@ -92,15 +108,20 @@ export default function Home() {
             <div className="progress"><i style={{ width: `${Math.min(100, (placed.length / 6) * 100)}%` }} /></div>
             <small>{Math.min(placed.length, 6)} / 6 structures awakened</small>
           </div>
-          <button className="gather" onClick={gather}><span>Gather ember</span><b>+16 ◆</b></button>
+          <button className={`gather ${tutorialOpen && tutorial === 0 ? "tutorial-target" : ""}`} onClick={gather}><span>Gather ember</span><b>+16 ◆</b></button>
         </aside>
 
         <div className="world-wrap" aria-label="Isometric building grid">
           <div className="moon" />
           <div className="world">
+            <div className="mist-ring mist-one" />
+            <div className="mist-ring mist-two" />
             <div className="light-aura" style={{ opacity: Math.min(.82, .35 + light / 220) }} />
             <div className="campfire"><span>♨</span><i /><i /><i /></div>
-            <div className="grid">
+            <div className="keeper keeper-one"><i /><b /></div>
+            <div className="keeper keeper-two"><i /><b /></div>
+            <div className="spirit-fox"><span>◆</span><i /></div>
+            <div className={`grid ${tutorialOpen && tutorial === 2 ? "tutorial-target-grid" : ""}`}>
               {GRID.map((cell) => {
                 const building = occupied.get(cell);
                 const lit = litCells.has(cell);
@@ -129,7 +150,7 @@ export default function Home() {
             {(Object.keys(BUILDINGS) as BuildingKind[]).map((kind) => {
               const item = BUILDINGS[kind];
               return (
-                <button key={kind} className={selected === kind ? "active" : ""} onClick={() => { setSelected(kind); setToast(`Select a glowing tile for the ${item.name}.`); }}>
+                <button key={kind} className={`${selected === kind ? "active" : ""} ${tutorialOpen && tutorial === 1 && kind === "lantern" ? "tutorial-target" : ""}`} onClick={() => { setSelected(kind); setToast(`Select a glowing tile for the ${item.name}.`); if (tutorial === 1 && kind === "lantern") setTutorial(2); }}>
                   <span className={`miniature ${kind}`}>{item.icon}</span>
                   <span><b>{item.name}</b><small>{kind === "cottage" ? "Shelter for two keepers" : kind === "lantern" ? "Reveals distant ground" : "Grows ember over time"}</small></span>
                   <em>{item.cost} ◆</em>
@@ -140,6 +161,26 @@ export default function Home() {
           <p className="tip"><span>✦</span> Lanterns cast the widest glow. Chain them toward the sleeping ruins.</p>
         </aside>
       </section>
+
+      {tutorialOpen && (
+        <section className={`tutorial ${tutorial === 3 ? "complete" : ""}`} aria-live="polite">
+          <div className="tutorial-flame">✦</div>
+          <div className="tutorial-copy">
+            <span>{tutorialCopy[tutorial].label} · {tutorial + 1} of 4</span>
+            <h4>{tutorialCopy[tutorial].title}</h4>
+            <p>{tutorialCopy[tutorial].body}</p>
+          </div>
+          <div className="tutorial-progress">
+            {[0, 1, 2, 3].map((step) => <i key={step} className={step <= tutorial ? "done" : ""} />)}
+            {tutorial === 3 ? (
+              <button onClick={() => setTutorialOpen(false)}>Enter the vale</button>
+            ) : (
+              <b>{tutorialCopy[tutorial].action}</b>
+            )}
+          </div>
+          <button className="tutorial-close" onClick={() => setTutorialOpen(false)} aria-label="Skip tutorial">Skip</button>
+        </section>
+      )}
 
       <footer><span>Click a glowing tile to build</span><i>◆</i><span>Gather ember to keep expanding</span></footer>
     </main>
